@@ -1,6 +1,6 @@
 //! Provides a type representing a Redis protocol frame.
 //!
-//! The Redis protocol can be found at https://redis.io/topics/protocol
+//! The Redis protocol can be found at <https://redis.io/topics/protocol>
 
 use bytes::{Buf, Bytes};
 use std::convert::TryInto;
@@ -124,7 +124,7 @@ impl Frame {
 
     /// Parses the message into a `Frame`.
     ///
-    /// The message should be valivated with `check()` beforehead.
+    /// The message should be valivated with `check()` before calling this function.
     pub fn parse(src: &mut Cursor<&[u8]>) -> Result<Frame, Error> {
         match eat_u8(src)? {
             // parse simple frame

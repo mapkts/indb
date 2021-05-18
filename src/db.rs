@@ -110,6 +110,40 @@ impl Db {
             self.shared.background_task.notify_one();
         }
     }
+
+    /// Publish a message to the channel. Returns the number of subscribers listening on the
+    /// channel.
+    pub(crate) fn publish(&self, key: &str, value: Bytes) -> usize {
+        let state = self.shared.state.lock().unwrap();
+
+        state
+            .pub_sub
+            .get(key)
+            .map(
+                // `0` here indicates there are no receivers.
+                |tx| tx.send(value).unwrap_or(0),
+            )
+            // `0` here indicates there are no subscribers.
+            .unwrap_or(0)
+    }
+
+    /// Returns a `Receiver` for the requested channel.
+    pub(crate) fn subscribe(&self, key: String) -> broadcast::Receiver<Bytes> {
+        use std::collections::hash_map::Entry;
+
+        let mut state = self.shared.state.lock().unwrap();
+
+        // If there is no entry for the requrest channel, then create a new broadcast channel and
+        // associate it with the key. If one already exists, return an associated receiver.
+        match state.pub_sub.entry(key) {
+            Entry::Occupied(e) => e.get().subscribe(),
+            Entry::Vacant(e) => {
+                let (tx, rx) = broadcast::channel(1024);
+                e.insert(tx);
+                rx
+            }
+        }
+    }
 }
 
 impl Drop for Db {
@@ -171,12 +205,12 @@ impl State {
 async fn purge_expired_tasks(shared: Arc<Shared>) {
     while !shared.is_shutdown() {
         if let Some(when) = shared.purge_expired_keys() {
-           tokio::select! {
-               _ = time::sleep_until(when) => {}
-               _ = shared.background_task.notified() => {}
-           }
+            tokio::select! {
+                _ = time::sleep_until(when) => {}
+                _ = shared.background_task.notified() => {}
+            }
         } else {
-            // there are no keys expiring in the future. Wait until the tasks is notified.  
+            // there are no keys expiring in the future. Wait until the tasks is notified.
             shared.background_task.notified().await;
         }
     }
