@@ -1,7 +1,5 @@
 //! Redis commands implementation.
 
-use crate::{Connection, Db, Frame, Shutdown, Parse};
-
 mod get;
 pub use get::Get;
 
@@ -17,7 +15,9 @@ pub use subscribe::{Subscribe, Unsubscribe};
 mod unknown;
 pub use unknown::Unknown;
 
-/// supported Redis commands.
+use crate::{Connection, Db, Frame, Parse, ParseError, Shutdown};
+
+/// Supported Redis commands.
 #[derive(Debug)]
 pub enum Command {
     Get(Get),
@@ -59,15 +59,15 @@ impl Command {
         self,
         db: &Db,
         dst: &mut Connection,
-        shutdown: &Shutdown,
+        shutdown: &mut Shutdown,
     ) -> crate::Result<()> {
         use Command::*;
         match self {
             Get(cmd) => cmd.apply(db, dst).await,
             Set(cmd) => cmd.apply(db, dst).await,
             Publish(cmd) => cmd.apply(db, dst).await,
-            Subscribe(cmd) => cmd.apply(db, dst).await,
-            Unknown(cmd) => cmd.apply(db, dst).await,
+            Subscribe(cmd) => cmd.apply(db, dst, shutdown).await,
+            Unknown(cmd) => cmd.apply(dst).await,
             // `Unsubcribe` cannot be applied. It may only be received from the context of a
             // `Subscribe` command.
             Unsubscribe(cmd) => Err("`Unsubscribe` is unsupported in this context".into()),

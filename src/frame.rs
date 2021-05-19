@@ -29,7 +29,7 @@ pub enum Error {
 const ERROR_INVALID_FRAME: &str = "protocol error: invalid frame format";
 
 impl Frame {
-    /// Returns an empty array.
+    /// Returns an empty array frame.
     pub(crate) fn array() -> Frame {
         Frame::Array(vec![])
     }
