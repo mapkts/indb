@@ -137,4 +137,16 @@ impl Set {
 
         Ok(())
     }
+
+    pub(crate) fn into_frame(self) -> Frame {
+        let mut frame = Frame::array();
+        frame.push_bulk(Bytes::from("set".as_bytes()));
+        frame.push_bulk(Bytes::from(self.key.into_bytes()));
+        frame.push_bulk(self.value);
+        if let Some(ms) = self.options.expire {
+            frame.push_bulk(Bytes::from("px".as_bytes()));
+            frame.push_int(ms.as_millis() as u64);
+        }
+        frame
+    }
 }

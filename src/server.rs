@@ -141,7 +141,7 @@ impl Listener {
 
     /// Accepts an inbound connection.
     ///
-    /// Errors are handled by a exponential backoff strategy.  First failed task
+    /// Errors are handled by a exponential backoff strategy. First failed task
     /// waits for 1 second, and second failure waits for 2 seconds. Each subsequent
     /// failure doubles the wait time. If accepting fails on the 6th try after
     /// waiting for 64 seconds, then this function returns with an error.
@@ -157,14 +157,14 @@ impl Listener {
                         // failed too many times. Return the error.
                         return Err(err.into());
                     }
-
-                    // Pause execution until the backoff period elapses.
-                    time::sleep(Duration::from_secs(backoff)).await;
-
-                    // Double the backoff.
-                    backoff *= 2;
                 }
             }
+
+            // Pause execution until the backoff period elapses.
+            time::sleep(Duration::from_secs(backoff)).await;
+
+            // Double the backoff.
+            backoff *= 2;
         }
     }
 }

@@ -168,7 +168,7 @@ impl Shared {
             return None;
         }
 
-        let mut state = &mut *state;
+        let state = &mut *state;
 
         // find all key scheduled to expire before now.
         let now = Instant::now();

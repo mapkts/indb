@@ -70,7 +70,7 @@ impl Command {
             Unknown(cmd) => cmd.apply(dst).await,
             // `Unsubcribe` cannot be applied. It may only be received from the context of a
             // `Subscribe` command.
-            Unsubscribe(cmd) => Err("`Unsubscribe` is unsupported in this context".into()),
+            Unsubscribe(_) => Err("`Unsubscribe` is unsupported in this context".into()),
         }
     }
 

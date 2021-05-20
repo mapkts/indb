@@ -16,6 +16,7 @@ mod parse;
 use parse::{Parse, ParseError};
 
 pub mod server;
+pub mod client;
 
 pub mod cmd;
 pub use cmd::Command;
